@@ -1,0 +1,6 @@
+[package]
+name = "snippet"
+version = "0.1.0"
+authors = ["Airtnp <xiaolr2003@foxmail.com>"]
+
+[dependencies]
