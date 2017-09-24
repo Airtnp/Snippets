@@ -36,13 +36,22 @@ LIBS        =
 
 RM          = rm -fv
 
-release: CXXFLAGS += -O3 -DNDEBUG
+# make release - will compile "all" with $(CXXFLAGS) and the -O3 flag
+#				 also defines NDEBUG so that asserts will not check
+release: CXXFLAGS += -O3 -DNDEBUG  -fprofile-use
 release: all
 
-debug: CXXFLAGS += -g3 -DDEBUG
-debug: all
+prerelease: CXXFLAGS += -O3 -DNDEBUG
+prerelease: all
 
-profile: CXXFLAGS += -pg
+# make debug - will compile "all" with $(CXXFLAGS) and the -g flag
+#              also defines DEBUG so that "#ifdef DEBUG /*...*/ #endif" works
+debug: EXECUTABLE := $(DEBUG)
+debug: CXXFLAGS += -g3 -DDEBUG
+debug: clean all
+
+# make profile - will compile "all" with $(CXXFLAGS) and the -pg flag
+profile: CXXFLAGS += -O3 -DNDEBUG -fprofile-generate
 profile: clean all
 
 all: $(TARGETS)

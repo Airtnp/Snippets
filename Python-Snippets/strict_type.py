@@ -1,5 +1,7 @@
 from typing import TypeVar, Sequence, Tuple
 
+# For any function F: Callable[[Sequence[Any]], Tuple[Any, ...]]
+# Generic[T]
 # ref: https://www.zhihu.com/question/64385692/answer/219921645
 class Strict:
 	# Or T = TypeVar('T') + Sequence[T] / Dict[str, T]
