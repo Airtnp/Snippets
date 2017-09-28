@@ -1,8 +1,8 @@
-UM_GCC_VERSION   = 6.2.0
 
-PATH        	:= /usr/um/$(UM_GCC_VERSION)/bin:$(PATH)
-LD_LIBRARY_PATH := /usr/um/$(UM_GCC_VERSION)/lib64
-LD_RUN_PATH     := /usr/um/$(UM_GCC_VERSION)/lib64
+PATH        	:= $(PATH)
+LIBRARY_PATH    := $(LIBRARY_PATH)
+LD_LIBRARY_PATH := $(LD_LIBRARY_PATH)
+LD_RUN_PATH     := $(LD_RUN_PATH)
 
 TESTSRCS    = $(wildcard test*.cpp)
 PROJSRCS    = $(wildcard project*.cpp)
@@ -23,12 +23,20 @@ CCGDBFLAGS  = -g
 CCFLAGS     = $(CCWFLAGS) $(CCNFLAGS) $(CCGDBFLAGS)
 
 CXX         = g++
-CXXSTD      = -std=c++11
-CXXWFLAGS   = -Wall -Wextra -Wshadow -Wpedantic --pedantic-errors -O2 $(CXXSTD)
+CXXSTD      = -std=c++17
+CXXOPFLAGS  = -Ofast -DNDEBUG \
+			  -march=native \
+			  -fwhole-program -flto \
+			  -fprefetch-loop-arrays \
+			  -Wno-coverage-mismatch \
+			  -fno-rtti \
+			  -fomit-frame-pointer \
+			  -falign-functions=16 -falign-loops=16
+CXXWFLAGS   = -Wall -Wextra -Wshadow -Wpedantic --pedantic-errors $(CXXSTD)
 CXXNFLAGS   = -Wno-unused-value -Wno-unused-parameter -Wno-attributes -Wno-unused-variable
 CXXSANFLAGS = -fsanitize=undefined,address,leak,bounds,bool,enum
-CXXGDBFLAGS = -g
-CXXFLAGS    = $(CXXWFLAGS) $(CXXNFLAGS) $(CXXGDBFLAGS)
+CXXDBFLAGS  = -g3 -Og -DDEBUG
+CXXFLAGS    = $(CXXWFLAGS) $(CXXNFLAGS)
 
 INCLUDES    = 
 LDFLAGS     =
@@ -38,7 +46,7 @@ RM          = rm -fv
 
 # make release - will compile "all" with $(CXXFLAGS) and the -O3 flag
 #				 also defines NDEBUG so that asserts will not check
-release: CXXFLAGS += -O3 -DNDEBUG  -fprofile-use
+release: CXXFLAGS += $(CXXOPFLAGS) -fprofile-use
 release: all
 
 prerelease: CXXFLAGS += -O3 -DNDEBUG
@@ -47,11 +55,11 @@ prerelease: all
 # make debug - will compile "all" with $(CXXFLAGS) and the -g flag
 #              also defines DEBUG so that "#ifdef DEBUG /*...*/ #endif" works
 debug: EXECUTABLE := $(DEBUG)
-debug: CXXFLAGS += -g3 -DDEBUG
+debug: CXXFLAGS += $(CXXDBFLAGS)
 debug: clean all
 
 # make profile - will compile "all" with $(CXXFLAGS) and the -pg flag
-profile: CXXFLAGS += -O3 -DNDEBUG -fprofile-generate
+profile: CXXFLAGS += $(CXXOPFLAGS) -fprofile-generate
 profile: clean all
 
 all: $(TARGETS)
