@@ -21,7 +21,7 @@ def show_block_fn(fn):
         print("\t%s:%s %.2f%%" % (fn, bl, per))
     return show_block
 
-def download_file(url, idx, local_filename):
+def download_file(url, idx, local_filename, folder):
     local_filename = local_filename.replace("%20", " ")
     # NOTE the stream=True parameter  
     r = requests.get(url, stream=True)
@@ -38,47 +38,51 @@ def download_file(url, idx, local_filename):
     """
     return None  
 
-root_link=str(sys.argv[1])
+def download_pdf(root_link, folder, download_prefix = None):
 
-folder = str(sys.argv[2])
+    suffix = ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.tar.gz', '.zip', '.rar']
 
-suffix = ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.tar.gz', '.zip', '.rar']
+    try:
+        os.mkdir(folder) 
+    except:
+        print("Folder already exists: {}".format(folder))
 
-try:
-    os.mkdir(folder) 
-except:
-    print("Folder already exists: {}".format(folder))
+    r = requests.get(root_link)  
 
-r = requests.get(root_link)  
-
-if r.status_code == 200:  
-    soup = BeautifulSoup(r.text, 'lxml')  
-    # print unicode(soup.prettify())
-    # print(soup.find_all('a'))  
-    idx = 1  
-    for link in soup.find_all('a'):
-        url = link.get('href')
-        if url != None:
-            if len(sys.argv) == 3:
-                if url.startswith('http'):
-                    new_link = url
-                else:
-                    if root_link.endswith('.html'):
-                        new_link = '/'.join(root_link.split('/')[:-1]) + '/' + link.get('href')
+    if r.status_code == 200:  
+        soup = BeautifulSoup(r.text, 'lxml')  
+        # print unicode(soup.prettify())
+        # print(soup.find_all('a'))  
+        idx = 1  
+        for link in soup.find_all('a'):
+            url = link.get('href')
+            if url != None:
+                if not download_prefix:
+                    if url.startswith('http'):
+                        new_link = url
                     else:
-                        new_link = root_link + '/' + link.get('href')
-            else:
-                new_link = sys.argv[3] + '/' + link.get('href')
-            for suf in suffix:  
-                reg = r"([-_.\w]+)\{}([?&].*)*".format(suf)
-                m = re.search(reg, new_link)
-                if m and m.group(0):  
-                    print("\nDownloading: " + new_link + " -> " + m.group(1) + suf)
-                    try:  
-                        download_file(new_link,str(idx), (m.group(1) + suf))  
-                    except Exception as e:
-                        print("Failed to download url {}".format(new_link))
-                    idx += 1  
-    print("All download finished")  
-else:  
-    print("A errors occurs.")  
+                        if root_link.endswith('.html'):
+                            new_link = '/'.join(root_link.split('/')[:-1]) + '/' + link.get('href')
+                        else:
+                            new_link = root_link + '/' + link.get('href')
+                else:
+                    new_link = download_prefix + '/' + link.get('href')
+                for suf in suffix:  
+                    reg = r"([-_.\w]+)\{}([?&].*)*".format(suf)
+                    m = re.search(reg, new_link)
+                    if m and m.group(0):  
+                        print("\nDownloading: " + new_link + " -> " + m.group(1) + suf)
+                        try:  
+                            download_file(new_link,str(idx), (m.group(1) + suf), folder)  
+                        except Exception as e:
+                            print("Failed to download url {}".format(new_link))
+                        idx += 1  
+        print("All download finished")  
+    else:  
+        print("A errors occurs.")
+
+if __name__ == "__main__":
+    if (len(sys.argv) == 3):
+        download_pdf(sys.argv[1], sys.argv[2])
+    else:
+        download_pdf(sys.argv[1], sys.argv[2], sys.argv[3])          
