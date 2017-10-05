@@ -32,11 +32,17 @@ CXXOPFLAGS  = -Ofast -DNDEBUG \
 			  -fno-rtti \
 			  -fomit-frame-pointer \
 			  -falign-functions=16 -falign-loops=16
-CXXWFLAGS   = -Wall -Wextra -Wshadow -Wpedantic --pedantic-errors $(CXXSTD)
+CXXWFLAGS   = -Wall -Wextra -Wshadow -Wpedantic --pedantic-errors
+CXXADWFLAGS = -Wduplicated-cond -Wduplicated-branches \
+			  -Wlogical-op -Wnull-deference -Wold-style-cast \
+			  -Wuseless-cast -Wjump-misses-init \
+			  -Wdoule-promotion -Wformat=2 -Wconversion
+			  # GCC7: -Wrestrict
 CXXNFLAGS   = -Wno-unused-value -Wno-unused-parameter -Wno-attributes -Wno-unused-variable
 CXXSANFLAGS = -fsanitize=undefined,address,leak,bounds,bool,enum
 CXXDBFLAGS  = -g3 -Og -DDEBUG
-CXXFLAGS    = $(CXXWFLAGS) $(CXXNFLAGS)
+              # perftools -ltcmalloc -lprofiler
+CXXFLAGS    = $(CXXWFLAGS) $(CXXNFLAGS) $(CXXSTD)
 
 INCLUDES    = 
 LDFLAGS     =
