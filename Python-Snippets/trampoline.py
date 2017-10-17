@@ -26,6 +26,7 @@ def realfac(n):
 from functools import wraps
 import sys
 
+# ref: https://www.zhihu.com/question/29717057
 # ref: http://code.activestate.com/recipes/474088/
 class TailRecurseException(Exception):
     def __init__(self, args, kwargs):
@@ -57,3 +58,4 @@ def tail_call_optimized(g):
     return func
 
 # or just sys.setrecursionlimit(N)
+# or just use yield
