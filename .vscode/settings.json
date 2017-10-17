@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "random": "cpp",
-        "xiosbase": "cpp"
+        "xiosbase": "cpp",
+        "climits": "cpp"
     }
 }
