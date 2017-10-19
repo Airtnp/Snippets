@@ -111,7 +111,20 @@ def timeout(seconds, interval=None, ticks=None):
             if ticks is not None:
                 sys.setcheckinterval(old_ticks)
 
+@contextmanager
+def redirectIO(wfunc = None, rfunc = None):
+    import sys
+    sys_write = sys.stdout.write
+    sys_read = sys.stdin.read
+    if wfunc:
+        sys.stdout.write = wfunc
+    if rfunc:
+        sys.stdin.read = rfunc
+    yield
+    sys.stdout.write = sys_write
+    sys.stdin.read = sys_read
     
+
 def call_trace(logger=None, name=None):
     """
     Trace a fun call with loger.
@@ -170,4 +183,26 @@ def retry(num, errors=Exception):
                         raise
         return baz
     return foo
+
+import time
+
+def clock(fmt='[%0.8fs] %s(%s) -> %r'):
+    def decorate(func):
+        @functools.wraps(func)
+        def clocked(*args, **kwargs):
+            t0 = time.time()
+            result = func(*args, **kwargs)
+            elapsed = time.time() - t0
+            name = func.__name__
+            arg_lst = []
+            if args:
+                arg_lst.append(', '.join(repr(arg) for arg in args))
+            if kwargs:
+                pairs = ['%s=%r' % (k, w) for k, w in sorted(kwargs.items())]
+                arg_lst.append(', '.join(pairs))
+            arg_str = ', '.join(arg_lst)
+            print(fmt % (elapsed, name, arg_str, result))
+            return result
+        return clocked
+    return decorate
 
