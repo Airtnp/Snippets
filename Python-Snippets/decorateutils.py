@@ -148,18 +148,13 @@ def call_trace(logger=None, name=None):
         return f
     return _
 
-class lrucache:
-    """
-    LRU cache
-    """
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, instance, cls):
-        if not hasattr(self, "cached_result"):
-            result = self.func(instance)
-            setattr(instance, self.func.__name__, result)
-        return result
+def memoize(f):
+    memo = {}
+    def helper(x):
+        if x not in memo:            
+            memo[x] = f(x)
+        return memo[x]
+    return helper
 
 def retry(num, errors=Exception):
     """
