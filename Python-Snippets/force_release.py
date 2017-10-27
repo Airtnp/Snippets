@@ -15,6 +15,7 @@ t = A()
 
 print(sys.getrefcount(t.a)) # 3
 
+# or XXStruct.from_address(id(t.a)).ob_refcnt -= 1
 ctypes.pythonapi.Py_DecRef(ctypes.py_object(t.a))
 ctypes.pythonapi.Py_DecRef(ctypes.py_object(t.a))
 
