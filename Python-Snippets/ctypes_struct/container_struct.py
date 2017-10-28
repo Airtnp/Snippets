@@ -10,7 +10,7 @@ class ListStruct(ctypes.Structure, IObjStruct):
 
 
     def get(self, Ty):
-        ptr_array = self.ob_size * POINTER(Ty)      # POINTER(POINTER(Ty))
+        ptr_array = self.ob_size * KPOINTER(Ty)      # KPOINTER(KPOINTER(Ty))
         return ptr_array.from_address(self.ob_item)        
 
 
@@ -21,7 +21,7 @@ class TupleStruct(ctypes.Structure, IObjStruct):
     _fields_size_ = VarObjStruct._fields_size_ + 8 # 32
         
     def get(self, Ty):
-        ptr_cls = POINTER(Ty)
+        ptr_cls = KPOINTER(Ty)
         ptr_array = []
         for i in range(self.ob_size):
             ptr_array.append(ptr_cls.from_address(self.value_addr + 24 + 8 * i))
@@ -59,7 +59,7 @@ class DictStruct(ctypes.Structure, IObjStruct):
     _fields_ = ObjStruct._fields_ + [
         ("ma_used"         , c_longlong),
         ("ma_version_tag"  , c_ulonglong),
-        ("ma_keys"         , POINTER(DictKeyStruct)),
+        ("ma_keys"         , KPOINTER(DictKeyStruct)),
         ("ma_values"       , c_void_p) # PyObject**
     ]
 
@@ -69,10 +69,10 @@ class DictStruct(ctypes.Structure, IObjStruct):
 
 class RangeStruct(ctypes.Structure, IObjStruct):
     _fields_ = ObjStruct._fields_ + [
-        ("start"    , POINTER(IntStruct)),
-        ("stop"     , POINTER(IntStruct)),
-        ("step"     , POINTER(IntStruct)),
-        ("length"   , POINTER(IntStruct))
+        ("start"    , KPOINTER(IntStruct)),
+        ("stop"     , KPOINTER(IntStruct)),
+        ("step"     , KPOINTER(IntStruct)),
+        ("length"   , KPOINTER(IntStruct))
     ]
 
     def get(self):
@@ -83,9 +83,9 @@ class RangeStruct(ctypes.Structure, IObjStruct):
 
 class SliceStruct(ctypes.Structure, IObjStruct):
     _fields_ = ObjStruct._fields_ + [
-        ("start"    , POINTER(IntStruct)),
-        ("stop"     , POINTER(IntStruct)),
-        ("step"     , POINTER(IntStruct)),
+        ("start"    , KPOINTER(IntStruct)),
+        ("stop"     , KPOINTER(IntStruct)),
+        ("step"     , KPOINTER(IntStruct)),
     ]
 
     def get(self):
@@ -106,9 +106,9 @@ class SetStruct(ctypes.Structure, IObjStruct):
         ("fill"         , c_longlong),
         ("used"         , c_longlong),
         ("mask"         , c_longlong),
-        ("table"        , POINTER(SetEntryStruct)),
+        ("table"        , KPOINTER(SetEntryStruct)),
         ("hash"         , c_longlong),
         ("finger"       , c_longlong),
         ("smalltable"   , SetEntryStruct * 8),
-        ("weakreflist"  , POINTER(ListStruct))
+        ("weakreflist"  , KPOINTER(ListStruct))
     ]

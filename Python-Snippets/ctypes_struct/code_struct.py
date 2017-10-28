@@ -13,15 +13,15 @@ class CodeStruct(ctypes.Structure, IObjStruct):
         ("co_flags"         , c_int),
         ("co_firstlineno"   , c_int),
         ("co_code"          , KPOINTER(BytesStruct)), # opcode bytes
-        ("co_consts"        , POINTER(ListStruct)), # list of string 
-        ("co_names"         , POINTER(ListStruct)), # list of constants
-        ("co_varnames"      , POINTER(TupleStruct)), # tuple of string
-        ("co_freevars"      , POINTER(TupleStruct)), # tuple of string
-        ("co_cellvars"      , POINTER(TupleStruct)), # tuple of string
-        ("co_cell2arg"      , POINTER(c_longlong)),
-        ("co_filename"      , POINTER(UnicodeStruct)), # unicode
-        ("co_name"          , POINTER(UnicodeStruct)), # unicode
-        ("co_lnotab"        , POINTER(UnicodeStruct)), # string
+        ("co_consts"        , KPOINTER(ListStruct)), # list of string 
+        ("co_names"         , KPOINTER(ListStruct)), # list of constants
+        ("co_varnames"      , KPOINTER(TupleStruct)), # tuple of string
+        ("co_freevars"      , KPOINTER(TupleStruct)), # tuple of string
+        ("co_cellvars"      , KPOINTER(TupleStruct)), # tuple of string
+        ("co_cell2arg"      , KPOINTER(c_longlong)),
+        ("co_filename"      , KPOINTER(UnicodeStruct)), # unicode
+        ("co_name"          , KPOINTER(UnicodeStruct)), # unicode
+        ("co_lnotab"        , KPOINTER(UnicodeStruct)), # string
         ("co_zombieframe"   , c_void_p),
         ("co_weakreflist"   , py_object),
         ("co_extra"         , c_void_p)
@@ -43,10 +43,10 @@ class FrameStruct(ctypes.Structure, IObjStruct):
     pass 
 
 FrameStruct._fields_ = VarObjStruct._fields_ + [
-        ("f_back"           , POINTER(FrameStruct)),
-        ("f_code"           , POINTER(CodeStruct)),
-        ("f_builtins"       , POINTER(DictStruct)),
-        ("f_globals"        , POINTER(DictStruct)),
+        ("f_back"           , KPOINTER(FrameStruct)),
+        ("f_code"           , KPOINTER(CodeStruct)),
+        ("f_builtins"       , KPOINTER(DictStruct)),
+        ("f_globals"        , KPOINTER(DictStruct)),
         ("f_valuestack"     , c_void_p), # PyObject**, points after the last local
         ("f_stacktop"       , c_void_p), # PyObject**
         ("f_trace"          , py_object),

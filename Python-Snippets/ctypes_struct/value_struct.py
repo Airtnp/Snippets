@@ -66,7 +66,7 @@ WeakRefStruct._fields_ = ObjStruct._fields_ + [
         ("wr_object"    , c_void_p),
         ("wr_callback"  , c_void_p),
         ("hash"         , c_longlong),
-        ("wr_prev"      , POINTER(WeakRefStruct)),
-        ("wr_next"      , POINTER(WeakRefStruct))
+        ("wr_prev"      , KPOINTER(WeakRefStruct)),
+        ("wr_next"      , KPOINTER(WeakRefStruct))
     ]
 
