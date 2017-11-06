@@ -13,6 +13,7 @@ class CellStruct(ctypes.Structure, IObjStruct):
         ("ob_ref", c_void_p) # PyObject*
     ]
 
+# That's builtin-method
 class MethodDefStruct(ctypes.Structure, IObjStruct):
     _fields_ = [
         ("ml_name" , c_char_p),

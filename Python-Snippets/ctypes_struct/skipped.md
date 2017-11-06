@@ -11,4 +11,5 @@
 * ordered_dict
 * structseq
 * symtable
-* 
+* class definition
+* [python-internals](https://eli.thegreenplace.net/tag/python-internals)

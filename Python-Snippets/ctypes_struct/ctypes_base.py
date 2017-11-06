@@ -44,11 +44,11 @@ class IObjStruct:
         ty = self.__class__
         ity = item.__class__
         if ity.__name__.find("LP_") != -1:
-            offset = ty.__dict__[name].offset
             value_offset[id(item)] = 0
             value_address[id(item)] = c_ulonglong.from_address(value_address[id(self)] + offset).value
         else:
-            value_offset[id(item)] = value_offset[id(self)]
+            offset = ty.__dict__[name].offset
+            value_offset[id(item)] = value_offset[id(self)] + offset
         return item
 
 
