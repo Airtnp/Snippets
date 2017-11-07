@@ -41,7 +41,10 @@ def get_variable_name_simple(var):
     return names
 
 # Don't work with REPL, nothing named after f_globals['<module>']
-# Create a dumbless frame
+# Need to redirect a frame
+# If not handled with hacked lineno, 
+# We must use 1-level nested no-argument function 
+# which directly ref to ordered variable
 def get_variable_name(var):
     last_frame = sys._getframe(1)
     last_code = last_frame.f_code
@@ -67,14 +70,27 @@ def get_variable_name(var):
         last_code_arr = bytearray(last_code.co_code)
         call_lineno = last_frame.f_lineno
         # last_code_arr[last_frame.f_lineno] = opmap['CALL_FUNCTION']
-        load_var_op = last_code_arr[call_lineno - 2]
-        load_var_pos = last_code_arr[call_lineno - 1]
+        attr_name = []
+        pos_code = 2
+        pos_off = 1
+        load_var_op = last_code_arr[call_lineno - pos_code]
+        load_var_pos = last_code_arr[call_lineno - pos_off]
+        while load_var_op == opmap['LOAD_ATTR']:
+            attr_name.append(last_code.co_names[load_var_pos])
+            load_var_op = last_code_arr[call_lineno - pos_code]
+            load_var_pos = last_code_arr[call_lineno - pos_off]
+            pos_code += 2
+            pos_off += 2
         if load_var_op == opmap['LOAD_FAST']:
-            return last_code.co_varnames[load_var_pos]
-        if load_var_op == opmap['LOAD_GLOBAL'] or load_var_op == opmap['LOAD_NAME']:
-            return last_code.co_names[load_var_pos]
-        if load_var_op == opmap['LOAD_DEREF']:
-            return last_code.co_freevars[load_var_pos]
+            attr_name.append(last_code.co_varnames[load_var_pos])
+            return '.'.join(attr_name)
+        elif load_var_op == opmap['LOAD_GLOBAL'] or load_var_op == opmap['LOAD_NAME']:
+            attr_name.append(last_code.co_names[load_var_pos])
+            return '.'.join(attr_name)
+        elif load_var_op == opmap['LOAD_DEREF']:
+            attr_name.append(last_code.co_freevars[load_var_pos])
+            return '.'.join(attr_name)
+
         print("I don't know, maybe just consts")
         return None
     else:
@@ -84,10 +100,14 @@ def get_variable_name(var):
         # sys._getframe(0).f_back = last_frame.f_back
         # last_frame.clear()
 
-
-
 def do_nothing():
     pass
+
+@hack_line_numbers
+def f():
+    a_var = 'str'
+    print(get_variable_name(a_var)) # a_var
+
 
 def g():
     ar = 1
@@ -100,5 +120,22 @@ def g():
     def nested_get_varname():
         return get_variable_name(arrrrrgggghhhhhh)
     name = nested_get_varname()
-    print(name)
+    print(name) # arrrrrgggghhhhh
 
+class A:
+    pass
+
+def h():
+    test = A()
+    test.t = A()
+    test.t.t = 1
+    return get_variable_name(test.t.t) # test.t.t
+
+def u():
+    return get_variable_name(1)
+
+def test_all():
+    f()
+    g()
+    print(h())
+    print(u())
