@@ -2,6 +2,7 @@ import sys
 import dis
 import types
 from opcode import *
+import inspect
 
 # ref: https://nedbatchelder.com/blog/200804/wicked_hack_python_bytecode_tracing.html
 def hack_line_numbers(f):
@@ -24,6 +25,7 @@ def hack_line_numbers(f):
         code.co_filename, code.co_name, 0, str.encode(new_lnotab), code.co_freevars, code.co_cellvars
         )  
     f.__code__ = new_code
+    f.__is_lineno_hacked__ = True
     return f
 
 def get_variable_name_easy(**kwargs):
@@ -38,27 +40,55 @@ def get_variable_name_simple(var):
             names.append(k)
     return names
 
-# Of course, don't work with REPL
-# the caller function should hack line number to get accurate lineno
+# Don't work with REPL, nothing named after f_globals['<module>']
+# Create a dumbless frame
 def get_variable_name(var):
     last_frame = sys._getframe(1)
     last_code = last_frame.f_code
-    last_code_arr = bytearray(last_code.co_code)
-    call_lineno = last_frame.f_lineno
-    # last_code_arr[last_frame.f_lineno] = opmap['CALL_FUNCTION']
-    load_var_op = last_code_arr[call_lineno - 2]
-    load_var_pos = last_code_arr[call_lineno - 1]
-    if load_var_op == opmap['LOAD_FAST']:
-        return last_code.co_varnames[load_var_pos]
-    if load_var_op == opmap['LOAD_GLOBAL'] or load_var_op == opmap['LOAD_NAME']:
-        return last_code.co_names[load_var_pos]
-    print("I don't know, maybe just consts")
-    return None
+    last_func_name = last_code.co_name
+    last_func = None
+    if last_func_name in last_frame.f_globals.keys():
+        last_func = last_frame.f_globals[last_func_name]
+    elif last_func_name in last_frame.f_locals.keys():
+        last_func = last_frame.f_globals[last_func_name]
+    else:
+        # nested support
+        if last_func_name in last_frame.f_back.f_globals.keys():
+            last_func = last_frame.f_back.f_globals[last_func_name]
+        elif last_func_name in last_frame.f_back.f_locals.keys():
+            last_func = last_frame.f_back.f_locals[last_func_name]
+    is_lineno_hacked = False;
+    if not last_func:
+        print("Holy crap. Assume we have hacked our lineno")
+        is_lineno_hacked = True
+    elif '__is_lineno_hacked__' in last_func.__dict__.keys():
+        is_lineno_hacked = True
+    if is_lineno_hacked:
+        last_code_arr = bytearray(last_code.co_code)
+        call_lineno = last_frame.f_lineno
+        # last_code_arr[last_frame.f_lineno] = opmap['CALL_FUNCTION']
+        load_var_op = last_code_arr[call_lineno - 2]
+        load_var_pos = last_code_arr[call_lineno - 1]
+        if load_var_op == opmap['LOAD_FAST']:
+            return last_code.co_varnames[load_var_pos]
+        if load_var_op == opmap['LOAD_GLOBAL'] or load_var_op == opmap['LOAD_NAME']:
+            return last_code.co_names[load_var_pos]
+        if load_var_op == opmap['LOAD_DEREF']:
+            return last_code.co_freevars[load_var_pos]
+        print("I don't know, maybe just consts")
+        return None
+    else:
+        last_func = hack_line_numbers(last_func)
+        sys._getframe(0).f_locals[last_func_name] = last_func
+        return last_func()
+        # sys._getframe(0).f_back = last_frame.f_back
+        # last_frame.clear()
+
+
 
 def do_nothing():
     pass
 
-@hack_line_numbers
 def g():
     ar = 1
     arrrrrgggghhhhhh = 1
@@ -66,6 +96,9 @@ def g():
     do_nothing()
     do_nothing()
     do_nothing()
-    n = get_variable_name(arrrrrgggghhhhhh)
-    print(n)
+    name = None
+    def nested_get_varname():
+        return get_variable_name(arrrrrgggghhhhhh)
+    name = nested_get_varname()
+    print(name)
 
