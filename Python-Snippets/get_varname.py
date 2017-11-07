@@ -38,20 +38,19 @@ def get_variable_name_simple(var):
             names.append(k)
     return names
 
-# don't work with REPL
+# Of course, don't work with REPL
 # the caller function should hack line number to get accurate lineno
 def get_variable_name(var):
     last_frame = sys._getframe(1)
-    frame = sys._getframe(0)
-    last_code = sys._getframe(1).f_code
+    last_code = last_frame.f_code
     last_code_arr = bytearray(last_code.co_code)
     call_lineno = last_frame.f_lineno
     # last_code_arr[last_frame.f_lineno] = opmap['CALL_FUNCTION']
     load_var_op = last_code_arr[call_lineno - 2]
     load_var_pos = last_code_arr[call_lineno - 1]
-    if load_var_op == opmap['LOAD_NAME'] or load_var_op == opmap['LOAD_FAST']:
+    if load_var_op == opmap['LOAD_FAST']:
         return last_code.co_varnames[load_var_pos]
-    if load_var_op == opmap['LOAD_GLOBAL']:
+    if load_var_op == opmap['LOAD_GLOBAL'] or load_var_op == opmap['LOAD_NAME']:
         return last_code.co_names[load_var_pos]
     print("I don't know, maybe just consts")
     return None
