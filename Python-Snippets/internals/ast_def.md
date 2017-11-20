@@ -1,4 +1,4 @@
-```python
+
 # ASDL's 7 builtin types are:
 # identifier, int, string, bytes, object, singleton, constant
 #
@@ -130,4 +130,3 @@ module Python
 
     withitem = (expr context_expr, expr? optional_vars)
 }
-```

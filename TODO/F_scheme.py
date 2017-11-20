@@ -1,5 +1,7 @@
 from ast import *
+import dis
 import sys
+import os
 
 def printAst(ast, indent='  ', stream=sys.stdout, initlevel=0):
     "Pretty-print an AST to the given output stream."
@@ -9,21 +11,17 @@ def printAst(ast, indent='  ', stream=sys.stdout, initlevel=0):
 def rec_node(node, level, indent, write, attr_name = None):
     "Recurse through a node, pretty-printing it."
     pfx = indent * level
+    write(pfx)
+    if attr_name:
+        write(attr_name)
+        write(' = ')
+
     if isinstance(node, AST):
         children = [(child, node.__dict__[child]) for child in node._fields]
+        write(node.__class__.__name__)
         if children == []:
-            write(pfx)
-            if attr_name:
-                write(attr_name)
-                write(' = ')
-            write(node.__class__.__name__)
             write(' ()')
             return
-        write(pfx)
-        if attr_name:
-            write(attr_name)
-            write(' = ')
-        write(node.__class__.__name__)
         write(' (')
         for i, tchild in enumerate(children):
             tname, child = tchild
@@ -33,11 +31,12 @@ def rec_node(node, level, indent, write, attr_name = None):
             if isinstance(child, AST):
                 rec_node(child, level + 1, indent, write, tname)
             elif isinstance(child, list):
+                write(pfx)
+                write(indent)
+                write(tname)
+                write(' = ')
                 if child != []:
-                    write(pfx)
-                    write(indent)
-                    write(tname)
-                    write(' = [')
+                    write('[')
                     for j, elem in enumerate(child):
                         if j != 0:
                             write(',')
@@ -48,10 +47,6 @@ def rec_node(node, level, indent, write, attr_name = None):
                     write(indent)
                     write(']')
                 else:
-                    write(pfx)
-                    write(indent)
-                    write(tname)
-                    write(' = ')
                     write('[]')
             else:
                 write(pfx)
@@ -63,8 +58,22 @@ def rec_node(node, level, indent, write, attr_name = None):
         write(pfx)
         write(')')
     else:
-        write(pfx)
-        if attr_name:
-            write(attr_name)
-            write(' = ')
         write(repr(node))
+
+
+def walk_ast(filename):
+    func_dict = {}
+    with open(filename, 'r') as f:
+        tree = parse(f.read())
+        printAst(tree)
+        for stmt in walk(tree):
+            if isinstance(stmt, FunctionDef):
+                name = stmt.name
+                args = stmt.args
+                for expr in stmt.body:
+                    if isinstance(stmt, Call):
+                        pass
+
+
+if __name__ == "__main__":
+    walk_ast("./test.py")
