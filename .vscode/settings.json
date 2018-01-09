@@ -2,6 +2,7 @@
     "files.associations": {
         "random": "cpp",
         "xiosbase": "cpp",
-        "climits": "cpp"
+        "climits": "cpp",
+        "utility": "cpp"
     }
 }
