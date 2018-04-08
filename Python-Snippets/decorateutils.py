@@ -2,6 +2,19 @@
 import logging
 import six
 
+class Timeit(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kws):
+        start_time = time.time()
+        result = self.func(*args, **kws)
+        print("elapsed time is %s " % (time.time() - start_time))
+        return result
+
+    def __get__(self, instance, owner):
+        return lambda *args, **kwargs: self.func(instance, *args, **kwargs)
+
 @contextmanager
 def catch(errors=Exception, reraise=None, callback=logger.warning):
     """
